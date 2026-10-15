@@ -1,0 +1,236 @@
+import { useMemo, useState } from 'react';
+import {
+  Bell,
+  CalendarDays,
+  ChevronDown,
+  Download,
+  FileSpreadsheet,
+  LogOut,
+  RotateCcw,
+  Table2,
+} from 'lucide-react';
+import * as XLSX from 'xlsx';
+import logo from '../assets/logo-figma.png';
+import dashboardIcon from '../assets/ui-icons/Icon.png';
+import pendaftarIcon from '../assets/ui-icons/Icon-3.png';
+import anggotaIcon from '../assets/ui-icons/Icon-7.png';
+import contentNavIcon from '../assets/konten-icons/Container.png';
+
+const members = [
+  { name: 'Rido Sihombing', nim: '23102001', study: 'S1 Informatika', cohort: '2023', game: 'Mobile Legends' },
+  { name: 'Citra Nurhaliza', nim: '23102045', study: 'S1 Rekayasa Perangkat Lunak', cohort: '2023', game: 'Valorant' },
+  { name: 'Fajar Ramadhan', nim: '24103012', study: 'S1 Sistem Informasi', cohort: '2024', game: 'PUBG Mobile' },
+  { name: 'Daffa Arya Putra', nim: '22101088', study: 'S1 Sains Data', cohort: '2022', game: 'eFootball' },
+  { name: 'Kevin Aditya', nim: '24102115', study: 'S1 Informatika', cohort: '2024', game: 'Mobile Legends' },
+];
+
+const gameOptions = ['Semua Game', 'Mobile Legends', 'Valorant', 'PUBG Mobile', 'eFootball'];
+const cohortOptions = ['Semua Angkatan', '2022', '2023', '2024'];
+const studyOptions = ['Semua Program Studi', 'S1 Informatika', 'S1 Rekayasa Perangkat Lunak', 'S1 Sistem Informasi', 'S1 Sains Data'];
+
+export default function ExportData({ onLogout, onNavigate }) {
+  const [game, setGame] = useState('Semua Game');
+  const [cohort, setCohort] = useState('Semua Angkatan');
+  const [study, setStudy] = useState('Semua Program Studi');
+  const [dateRange, setDateRange] = useState('01/01/2024 - 31/12/2024');
+
+  const filtered = useMemo(() => members.filter((item) => {
+    const gameMatch = game === 'Semua Game' || item.game === game;
+    const cohortMatch = cohort === 'Semua Angkatan' || item.cohort === cohort;
+    const studyMatch = study === 'Semua Program Studi' || item.study === study;
+    return gameMatch && cohortMatch && studyMatch;
+  }), [game, cohort, study]);
+
+  const exportCount = filtered.length === members.length ? 215 : Math.max(filtered.length, 1) * 18;
+
+  function resetFilters() {
+    setGame('Semua Game');
+    setCohort('Semua Angkatan');
+    setStudy('Semua Program Studi');
+    setDateRange('01/01/2024 - 31/12/2024');
+  }
+
+  function exportExcel() {
+    const rows = filtered.map((item) => ({
+      Nama: item.name,
+      NIM: item.nim,
+      'Program Studi': item.study,
+      Angkatan: item.cohort,
+      Game: item.game,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Anggota');
+    XLSX.writeFile(workbook, 'data-anggota-tel-u-esports.xlsx');
+  }
+
+  return (
+    <main className="export-page">
+      <aside className="beranda-sidebar">
+        <div className="beranda-brand">
+          <img src={logo} alt="Logo UKM Esports Tel-U" />
+          <div className="beranda-brand__copy">
+            <strong>UKM ESPORTS TEL-U</strong>
+            <span>ADMIN CONSOLE</span>
+          </div>
+        </div>
+
+        <nav className="beranda-nav" aria-label="Navigasi admin">
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/beranda')}>
+            <img className="ui-nav-icon" src={dashboardIcon} alt="" aria-hidden="true" />
+            <span>Beranda</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/konten-beranda')}>
+            <img className="konten-nav-icon" src={contentNavIcon} alt="" aria-hidden="true" />
+            <span>Kelola Konten</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/pendaftar')}>
+            <img className="ui-nav-icon ui-nav-icon--pendaftar" src={pendaftarIcon} alt="" aria-hidden="true" />
+            <span>Pendaftar</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/anggota')}>
+            <img className="ui-nav-icon ui-nav-icon--anggota" src={anggotaIcon} alt="" aria-hidden="true" />
+            <span>Anggota</span>
+          </button>
+          <button type="button" className="beranda-nav__item beranda-nav__item--active">
+            <Table2 size={17} strokeWidth={1.8} />
+            <span>Export Data</span>
+          </button>
+        </nav>
+
+        <div className="beranda-sidebar__bottom">
+          <div className="beranda-admin">
+            <div className="beranda-admin__avatar">RP</div>
+            <div className="beranda-admin__copy">
+              <strong>Raka Pratan</strong>
+              <span>SUPER ADMIN</span>
+            </div>
+            <button type="button" className="beranda-admin__logout" onClick={onLogout} aria-label="Logout">
+              <LogOut size={15} strokeWidth={1.8} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <section className="export-main">
+        <header className="beranda-header">
+          <h1>Export Data</h1>
+          <div className="beranda-header__actions">
+            <div className="beranda-period">
+              <span className="beranda-period__dot" />
+              <span>Periode Aktif: Registrasi 2024/2025</span>
+            </div>
+            <button type="button" className="beranda-notification" aria-label="Notifikasi">
+              <Bell size={16} strokeWidth={1.8} />
+              <span className="beranda-notification__dot" />
+            </button>
+          </div>
+        </header>
+
+        <div className="export-content">
+          <section className="export-filter-card">
+            <div className="export-section-head">
+              <h2>Filter Data</h2>
+              <button type="button" className="export-reset" onClick={resetFilters}>
+                <RotateCcw size={12} strokeWidth={1.9} />
+                <span>Reset Filter</span>
+              </button>
+            </div>
+
+            <div className="export-filter-grid">
+              <label className="export-field">
+                <span>Game / Divisi</span>
+                <div className="export-select-wrap">
+                  <select value={game} onChange={(e) => setGame(e.target.value)}>
+                    {gameOptions.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                  <ChevronDown size={13} strokeWidth={1.8} />
+                </div>
+              </label>
+
+              <label className="export-field">
+                <span>Angkatan</span>
+                <div className="export-select-wrap">
+                  <select value={cohort} onChange={(e) => setCohort(e.target.value)}>
+                    {cohortOptions.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                  <ChevronDown size={13} strokeWidth={1.8} />
+                </div>
+              </label>
+
+              <label className="export-field">
+                <span>Program Studi</span>
+                <div className="export-select-wrap">
+                  <select value={study} onChange={(e) => setStudy(e.target.value)}>
+                    {studyOptions.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                  <ChevronDown size={13} strokeWidth={1.8} />
+                </div>
+              </label>
+
+              <label className="export-field">
+                <span>Rentang Tanggal</span>
+                <div className="export-date-wrap">
+                  <input value={dateRange} onChange={(e) => setDateRange(e.target.value)} />
+                  <CalendarDays size={13} strokeWidth={1.8} />
+                </div>
+              </label>
+            </div>
+
+            <div className="export-summary">
+              <div>
+                <span>Total:</span>
+                <strong>{exportCount} data akan diexport</strong>
+              </div>
+              <p>Berdasarkan filter yang aktif</p>
+            </div>
+          </section>
+
+          <section className="export-preview-card">
+            <div className="export-preview-head">
+              <div>
+                <h2>Preview Data</h2>
+                <span>(Maksimal 5 baris data teratas)</span>
+              </div>
+              <span>{Math.min(filtered.length, 5)} data ditampilkan</span>
+            </div>
+
+            <div className="export-table-wrap">
+              <table className="export-table">
+                <thead>
+                  <tr>
+                    <th>NAMA</th>
+                    <th>NIM</th>
+                    <th>PROGRAM STUDI</th>
+                    <th>ANGKATAN</th>
+                    <th>GAME</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.slice(0, 5).map((item) => (
+                    <tr key={item.nim}>
+                      <td><strong>{item.name}</strong></td>
+                      <td><span className="export-mono">{item.nim}</span></td>
+                      <td>{item.study}</td>
+                      <td>{item.cohort}</td>
+                      <td><span className="export-game-pill">{item.game}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="export-bottom">
+              <span>{exportCount} data siap diexport</span>
+              <button type="button" onClick={exportExcel}>
+                <FileSpreadsheet size={14} strokeWidth={1.9} />
+                <span>Export Excel (.xlsx)</span>
+                <Download size={13} strokeWidth={1.9} />
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  );
+}

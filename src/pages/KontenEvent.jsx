@@ -1,0 +1,513 @@
+import { useMemo, useState } from 'react';
+import {
+  FileText,
+  Bell,
+  CalendarDays,
+  Eye,
+  Gamepad2,
+  Home,
+  ImageUp,
+  LogOut,
+  Pencil,
+  Plus,
+  Save,
+  Table2,
+  Trash2,
+  Trophy,
+} from 'lucide-react';
+import logo from '../assets/logo-figma.png';
+import dashboardIcon from '../assets/ui-icons/Icon.png';
+import pendaftarIcon from '../assets/ui-icons/Icon-3.png';
+import anggotaIcon from '../assets/ui-icons/Icon-7.png';
+
+const seedEvents = [
+  {
+    id: 'rektor',
+    name: 'Piala Rektor Esports Championship 2025',
+    category: 'Campus Competition',
+    games: ['Mobile Legends', 'Valorant'],
+    date: '20 Maret 2025',
+    startDate: '15 Mar 2025',
+    endDate: '20 Mar 2025',
+    prize: 'Rp 10.000.000',
+    slots: '32',
+    status: 'TAMPIL',
+    description: 'Turnamen resmi antar fakultas Telkom University Purwokerto memperebutkan Piala Bergilir Rektor dan total hadiah tunai pembinaan.',
+    benefit: 'Sertifikat Resmi Rektorat, Hadiah Tunai, TAK / SKK Kemahasiswaan',
+    regulation: 'https://telupwt-esports.id/regulasi-piala-rektor-2025.pdf',
+    bannerName: 'piala-rektor-banner.webp',
+    bannerMeta: '1920 × 1080 px · 540 KB',
+  },
+  {
+    id: 'valorant',
+    name: 'Tel-U Purwokerto Valorant Clash Series',
+    category: 'Community Tournament',
+    games: ['Valorant'],
+    date: '08 April 2025',
+    startDate: '05 Apr 2025',
+    endDate: '08 Apr 2025',
+    prize: 'Rp 5.000.000',
+    slots: '16',
+    status: 'DRAFT',
+    description: 'Turnamen komunitas Valorant untuk mahasiswa Telkom University Purwokerto.',
+    benefit: 'Sertifikat, hadiah tunai',
+    regulation: '',
+    bannerName: 'valorant-clash-banner.webp',
+    bannerMeta: '1920 × 1080 px · 480 KB',
+  },
+  {
+    id: 'mlbb',
+    name: 'Purwokerto Inter-Collegiate MLBB Cup',
+    category: 'Inter-Campus Cup',
+    games: ['Mobile Legends'],
+    date: '14 Januari 2025',
+    startDate: '10 Jan 2025',
+    endDate: '14 Jan 2025',
+    prize: 'Rp 7.500.000',
+    slots: '32',
+    status: 'SELESAI',
+    description: 'Kompetisi Mobile Legends antarkampus wilayah Purwokerto.',
+    benefit: 'Hadiah tunai dan sertifikat',
+    regulation: '',
+    bannerName: 'mlbb-cup-banner.webp',
+    bannerMeta: '1920 × 1080 px · 460 KB',
+  },
+];
+
+const gameOptions = ['Mobile Legends', 'Valorant', 'PUBG Mobile', 'eFootball'];
+
+export default function KontenEvent({ onLogout, onNavigate }) {
+  const [events, setEvents] = useState(seedEvents);
+  const [editingId, setEditingId] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const editingEvent = useMemo(() => events.find((item) => item.id === editingId) || null, [events, editingId]);
+  const [draft, setDraft] = useState(null);
+
+  function openEdit(eventItem) {
+    setAdding(false);
+    setEditingId(eventItem.id);
+    setDraft({ ...eventItem, games: [...eventItem.games] });
+    requestAnimationFrame(() => {
+      document.getElementById('event-edit-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function openAdd() {
+    setEditingId(null);
+    setAdding(true);
+    setDraft({
+      id: '',
+      name: '',
+      category: '',
+      games: [],
+      date: '',
+      startDate: '',
+      endDate: '',
+      prize: '',
+      slots: '',
+      status: 'DRAFT',
+      description: '',
+      benefit: '',
+      regulation: '',
+      bannerName: '',
+      bannerMeta: '',
+    });
+    requestAnimationFrame(() => {
+      document.getElementById('event-edit-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function closeEdit() {
+    setAdding(false);
+    setEditingId(null);
+    setDraft(null);
+  }
+
+  function toggleGame(game) {
+    if (!draft) return;
+    setDraft((current) => ({
+      ...current,
+      games: current.games.includes(game)
+        ? current.games.filter((item) => item !== game)
+        : [...current.games, game],
+    }));
+  }
+
+  function saveEvent() {
+    if (!draft) return;
+
+    if (adding) {
+      const newEvent = {
+        ...draft,
+        id: 'event-' + Date.now(),
+        date: draft.endDate || draft.startDate || '-',
+        bannerName: draft.bannerName || 'event-banner.webp',
+        bannerMeta: draft.bannerMeta || '1920 × 1080 px',
+      };
+      setEvents((items) => [...items, newEvent]);
+      setAdding(false);
+      setDraft(null);
+      return;
+    }
+
+    setEvents((items) => items.map((item) => (item.id === draft.id ? { ...draft } : item)));
+  }
+
+  return (
+    <main className="event-page">
+      <aside className="beranda-sidebar">
+        <div className="beranda-brand">
+          <img src={logo} alt="Logo UKM Esports Tel-U" />
+          <div className="beranda-brand__copy">
+            <strong>UKM ESPORTS TEL-U</strong>
+            <span>ADMIN CONSOLE</span>
+          </div>
+        </div>
+
+        <nav className="beranda-nav" aria-label="Navigasi admin">
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/beranda')}>
+            <img className="ui-nav-icon" src={dashboardIcon} alt="" aria-hidden="true" />
+            <span>Beranda</span>
+          </button>
+          <button type="button" className="beranda-nav__item beranda-nav__item--active" onClick={() => onNavigate?.('/konten-beranda')}>
+            <FileText size={17} strokeWidth={1.8} />
+            <span>Kelola Konten</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/pendaftar')}>
+            <img className="ui-nav-icon ui-nav-icon--pendaftar" src={pendaftarIcon} alt="" aria-hidden="true" />
+            <span>Pendaftar</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/anggota')}>
+            <img className="ui-nav-icon ui-nav-icon--anggota" src={anggotaIcon} alt="" aria-hidden="true" />
+            <span>Anggota</span>
+          </button>
+          <button type="button" className="beranda-nav__item" onClick={() => onNavigate?.('/export-data')}>
+            <Table2 size={17} strokeWidth={1.8} />
+            <span>Export Data</span>
+          </button>
+        </nav>
+
+        <div className="beranda-sidebar__bottom">
+          <div className="beranda-admin">
+            <div className="beranda-admin__avatar">RP</div>
+            <div className="beranda-admin__copy">
+              <strong>Raka Pratan</strong>
+              <span>SUPER ADMIN</span>
+            </div>
+            <button type="button" className="beranda-admin__logout" onClick={onLogout} aria-label="Logout">
+              <LogOut size={15} strokeWidth={1.8} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <section className="event-main">
+        <header className="beranda-header">
+          <h1>Kelola Konten</h1>
+          <div className="beranda-header__actions">
+            <div className="beranda-period">
+              <span className="beranda-period__dot" />
+              <span>Periode Aktif: Registrasi 2024/2025</span>
+            </div>
+            <button type="button" className="beranda-notification" aria-label="Notifikasi">
+              <Bell size={16} strokeWidth={1.8} />
+              <span className="beranda-notification__dot" />
+            </button>
+          </div>
+        </header>
+
+        <div className="event-content">
+          <div className="konten-tabs" role="tablist" aria-label="Kelola Konten">
+            <button type="button" className="konten-tab" onClick={() => onNavigate?.('/konten-beranda')}>
+              <Home size={13} strokeWidth={2} />
+              <span>Beranda</span>
+            </button>
+            <button type="button" className="konten-tab" onClick={() => onNavigate?.('/konten-game-divisi')}>
+              <Gamepad2 size={13} strokeWidth={1.9} />
+              <span>Game / Divisi</span>
+            </button>
+            <button type="button" className="konten-tab konten-tab--active">
+              <Trophy size={13} strokeWidth={1.9} />
+              <span>Event</span>
+            </button>
+          </div>
+
+          {!adding ? (
+            <>
+          <section className="event-topbar">
+            <div className="event-count">
+              <span className="event-count__dot" />
+              <strong>3 Event Terdaftar</strong>
+            </div>
+            <button type="button" className="event-add" onClick={openAdd}>
+              <Plus size={13} strokeWidth={2.1} />
+              <span>Tambah Event</span>
+            </button>
+          </section>
+
+          <section className="event-table-card">
+            <div className="event-table-head">
+              <Trophy size={16} strokeWidth={1.8} />
+              <h2>Daftar Event / Turnamen</h2>
+            </div>
+
+            <div className="event-table-wrap">
+              <table className="event-table">
+                <thead>
+                  <tr>
+                    <th>BANNER /<br />THUMBNAIL</th>
+                    <th>NAMA EVENT</th>
+                    <th>GAME</th>
+                    <th>TANGGAL</th>
+                    <th>PRIZE POOL</th>
+                    <th>SLOT</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((item) => (
+                    <tr key={item.id} className={editingId === item.id ? 'event-row event-row--editing' : 'event-row'}>
+                      <td>
+                        <div className={'event-thumb event-thumb--' + item.id}>
+                          <span>ESPORTS</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="event-name">
+                          <strong>{item.name}</strong>
+                          <span>{item.category}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="event-game-tags">
+                          {item.games.map((game) => <span key={game}>{game}</span>)}
+                        </div>
+                      </td>
+                      <td><span className="event-date">{item.date}</span></td>
+                      <td><strong className="event-prize">{item.prize}</strong></td>
+                      <td><span className="event-slot">{item.slots} Slot</span></td>
+                      <td>
+                        <span className={'event-status event-status--' + item.status.toLowerCase()}>
+                          {item.status === 'TAMPIL' ? <Eye size={10} strokeWidth={2} /> : null}
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="event-actions">
+                          <button type="button" className={editingId === item.id ? 'event-edit event-edit--active' : 'event-edit'} onClick={() => openEdit(item)}>
+                            <Pencil size={12} strokeWidth={2} />
+                            <span>Edit</span>
+                          </button>
+                          <button type="button" className="event-delete" aria-label={'Hapus ' + item.name}>
+                            <Trash2 size={13} strokeWidth={1.9} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+            </>
+          ) : null}
+
+          {draft && (editingEvent || adding) ? (
+            <section className="event-edit-card" id="event-edit-form">
+              <div className="event-edit-head">
+                <div className="event-edit-head__icon">
+                  <Pencil size={16} strokeWidth={2} />
+                </div>
+                <div className="event-edit-head__copy">
+                  <div className="event-edit-head__title-row">
+                    <h2>{adding ? 'Tambah Event Baru' : 'Edit Event: ' + editingEvent.name}</h2>
+                    {!adding ? <span>SEDANG DISUNTING</span> : null}
+                  </div>
+                  <p>{adding ? 'Lengkapi detail publikasi dan informasi turnamen baru untuk website mahasiswa.' : 'Perbarui detail publikasi dan informasi turnamen untuk website mahasiswa.'}</p>
+                </div>
+              </div>
+
+              <div className="event-edit-body">
+                <div className="event-edit-grid event-edit-grid--top">
+                  <label className="event-field">
+                    <span>Nama Event</span>
+                    <input
+                      placeholder={adding ? 'Contoh: Piala Rektor Esports Championship 2025' : ''}
+                      value={draft.name}
+                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    />
+                  </label>
+
+                  <label className="event-field">
+                    <span>Kategori Event</span>
+                    <input
+                      placeholder={adding ? 'Pilih Kategori Event (misal: Campus Competition, Community Tournament)' : ''}
+                      value={draft.category}
+                      onChange={(e) => setDraft({ ...draft, category: e.target.value })}
+                    />
+                  </label>
+                </div>
+
+                <div className="event-field">
+                  <span>Cabang Game (Bisa pilih satu atau lebih)</span>
+                  <div className="event-game-options">
+                    {gameOptions.map((game) => (
+                      <button
+                        key={game}
+                        type="button"
+                        className={draft.games.includes(game) ? 'event-game-option event-game-option--active' : 'event-game-option'}
+                        onClick={() => toggleGame(game)}
+                      >
+                        <span className="event-game-option__check">{draft.games.includes(game) ? '✓' : '+'}</span>
+                        <span>{game}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="event-edit-grid event-edit-grid--dates">
+                  <label className="event-field">
+                    <span>Tanggal Mulai</span>
+                    <div className="event-date-input">
+                      <input
+                        placeholder={adding ? 'Pilih tanggal mulai' : ''}
+                        value={draft.startDate}
+                        onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
+                      />
+                      <CalendarDays size={13} strokeWidth={1.8} />
+                    </div>
+                  </label>
+
+                  <label className="event-field">
+                    <span>Tanggal Selesai</span>
+                    <div className="event-date-input">
+                      <input
+                        placeholder={adding ? 'Pilih tanggal selesai' : ''}
+                        value={draft.endDate}
+                        onChange={(e) => setDraft({ ...draft, endDate: e.target.value })}
+                      />
+                      <CalendarDays size={13} strokeWidth={1.8} />
+                    </div>
+                  </label>
+                </div>
+
+                <div className="event-edit-grid event-edit-grid--numbers">
+                  <label className="event-field">
+                    <span>Total Prize Pool</span>
+                    <input
+                      placeholder={adding ? 'Contoh: Rp 10.000.000' : ''}
+                      value={draft.prize}
+                      onChange={(e) => setDraft({ ...draft, prize: e.target.value })}
+                    />
+                  </label>
+
+                  <label className="event-field">
+                    <span>Jumlah Slot</span>
+                    <input
+                      placeholder={adding ? 'Contoh: 32' : ''}
+                      value={draft.slots}
+                      onChange={(e) => setDraft({ ...draft, slots: e.target.value })}
+                    />
+                  </label>
+                </div>
+
+                <label className="event-field">
+                  <span>Deskripsi Singkat</span>
+                  <textarea
+                    rows={4}
+                    placeholder={adding ? 'Tuliskan deskripsi singkat event yang akan tampil di landing page...' : ''}
+                    value={draft.description}
+                    onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                  />
+                </label>
+
+                <label className="event-field">
+                  <span>Benefit (Opsional)</span>
+                  <input
+                    placeholder={adding ? 'Contoh: Sertifikat Resmi Rektorat, Hadiah Tunai, TAK / SKK Kemahasiswaan' : ''}
+                    value={draft.benefit}
+                    onChange={(e) => setDraft({ ...draft, benefit: e.target.value })}
+                  />
+                </label>
+
+                <label className="event-field">
+                  <span>Link Jadwal / Regulasi</span>
+                  <input
+                    className="event-field__mono"
+                    placeholder={adding ? 'https://... (link file PDF regulasi atau jadwal)' : ''}
+                    value={draft.regulation}
+                    onChange={(e) => setDraft({ ...draft, regulation: e.target.value })}
+                  />
+                </label>
+
+                <div className="event-edit-bottom-grid">
+                  <div className="event-banner-field">
+                    <span>Banner Event (16:9)</span>
+                    {adding ? (
+                      <div className="event-add-banner-box">
+                        <div className="event-add-banner-drop">
+                          <ImageUp size={22} strokeWidth={1.7} />
+                          <strong>Pilih berkas banner atau tarik ke sini</strong>
+                          <span>Format PNG, JPG, WebP rasio 16:9 (maks. 2 MB)</span>
+                        </div>
+                        <div className="event-add-banner-meta">
+                          <div>
+                            <strong>Belum ada file dipilih</strong>
+                            <span>Rekomendasi 1920 × 1080 px</span>
+                          </div>
+                          <button type="button">
+                            <ImageUp size={11} strokeWidth={1.9} />
+                            <span>Unggah Banner</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="event-banner-preview">
+                        <div className="event-banner-art event-banner-art--rektor">
+                          <span>ESPORTS</span>
+                        </div>
+                        <div>
+                          <strong>{draft.bannerName}</strong>
+                          <small>{draft.bannerMeta}</small>
+                          <button type="button">
+                            <ImageUp size={11} strokeWidth={1.9} />
+                            <span>Ganti Banner</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="event-status-control">
+                    <span>Status Event</span>
+                    <div>
+                      {['DRAFT', 'TAMPIL', 'SELESAI'].map((status) => (
+                        <button
+                          key={status}
+                          type="button"
+                          className={draft.status === status ? 'is-active is-' + status.toLowerCase() : ''}
+                          onClick={() => setDraft({ ...draft, status })}
+                        >
+                          {status === 'Draft'.toUpperCase() ? 'Draft' : status === 'TAMPIL' ? 'Tampil' : 'Selesai'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="event-edit-footer">
+                <button type="button" className="event-edit-cancel" onClick={closeEdit}>Batal</button>
+                <button type="button" className="event-edit-save" onClick={saveEvent}>
+                  <Save size={13} strokeWidth={2} />
+                  <span>{adding ? 'Simpan Event Baru' : 'Simpan Perubahan Event'}</span>
+                </button>
+              </div>
+            </section>
+          ) : null}
+        </div>
+      </section>
+    </main>
+  );
+}
